@@ -215,7 +215,7 @@ class LoginForm(JSONFormResponseMixin, FormView):
         form = self.get_form()
 
         if form.is_valid():
-            user = mailchimp_client.get_supporter(form.cleaned_data['email'])
+            user = MailchimpAPI().get_supporter(form.cleaned_data['email'])
 
             if not user:
                 error_message = (
