@@ -20,7 +20,7 @@ import requests
 from mailchimp_auth.constants import TEST_PRIVATE_KEY
 from mailchimp_auth.forms import SignUpForm, LoginForm
 from mailchimp_auth.models import UserZipCode
-from mailchimp_auth.mailchimp import client as mailchimp_client
+from mailchimp_auth.mailchimp import MailchimpAPI
 from mailchimp_auth.tokens import account_activation_token
 
 
@@ -91,7 +91,7 @@ class SignUpForm(JSONFormResponseMixin, FormView):
 
         # If the email already exists in Mailchimp, re-verification is not required.
         # Authenticate the user.
-        mailchimp_user = mailchimp_client.get_supporter(email)
+        mailchimp_user = MailchimpAPI().get_supporter(email)
 
         if mailchimp_user == 'error':
             message_title = 'Something went wrong, please try again.'
@@ -262,7 +262,7 @@ class VerifyEmail(RedirectView):
         link_valid = user is not None and account_activation_token.check_token(user, token)
 
         if link_valid:
-            mailchimp_user = mailchimp_client.put_supporter(user)
+            mailchimp_user = MailchimpAPI().put_supporter(user)
 
             if mailchimp_user == 'error':
                 messages.add_message(self.request,

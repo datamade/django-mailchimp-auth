@@ -87,6 +87,3 @@ class MailchimpAPI(object):
         else:
             # No single, exact match found
             return None
-
-
-client = MailchimpAPI()
