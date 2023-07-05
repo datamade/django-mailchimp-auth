@@ -54,13 +54,11 @@ class SignUpForm(JSONFormResponseMixin, FormView):
     def form_valid(self, form):
         email = form.cleaned_data['email']
 
-        token = form.data.get('g-recaptcha-response', False)
+        token = form.data.get('g-recaptcha-response')
 
         if token:
             try:
                 score = self._get_captcha_score(token)
-            except ValidationError:
-                raise
             except requests.exceptions.ContentDecodingError:
                 raise ValidationError('Could not get reCAPTCHA score')
             else:
