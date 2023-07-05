@@ -54,40 +54,39 @@ class SignUpForm(JSONFormResponseMixin, FormView):
     def form_valid(self, form):
         email = form.cleaned_data['email']
 
-        token = form.data['g-recaptcha-response']
+        token = form.data.get('g-recaptcha-response')
 
-        try:
-            score = self._get_captcha_score(token)
-        except ValidationError:
-            raise
-        except requests.exceptions.ContentDecodingError:
-            raise ValidationError('Could not get reCAPTCHA score')
-        else:
-            user_is_a_bot = score < getattr(settings, 'GOOGLE_CAPTCHA_BOT_THRESHOLD', 0.1)
+        if token:
+            try:
+                score = self._get_captcha_score(token)
+            except requests.exceptions.ContentDecodingError:
+                raise ValidationError('Could not get reCAPTCHA score')
+            else:
+                user_is_a_bot = score < getattr(settings, 'GOOGLE_CAPTCHA_BOT_THRESHOLD', 0.1)
 
-            user_might_be_a_bot = (
-                score > getattr(settings, 'GOOGLE_CAPTCHA_BOT_THRESHOLD', 0.1) and
-                score < getattr(settings, 'GOOGLE_CAPTCHA_UNCERTAIN_THRESHOLD', 0.5)
-            )
-
-            if user_is_a_bot:
-                return super().form_invalid(form)
-
-            elif user_might_be_a_bot:
-                logging.warning(
-                    'CAPTCHA validation failed for signup: {}'.format(email)
+                user_might_be_a_bot = (
+                    score > getattr(settings, 'GOOGLE_CAPTCHA_BOT_THRESHOLD', 0.1) and
+                    score < getattr(settings, 'GOOGLE_CAPTCHA_UNCERTAIN_THRESHOLD', 0.5)
                 )
 
-                message_title = 'Validation Error'
-                message_body = (
-                    'We could not validate your email address. Please contact our '
-                    '<a href="mailto:help@illinoisanswers.org" target="_blank">Data Coordinator</a>.'
-                )
+                if user_is_a_bot:
+                    return super().form_invalid(form)
 
-                messages.add_message(self.request, messages.INFO, message_title, extra_tags='font-weight-bold')
-                messages.add_message(self.request, messages.INFO, message_body)
+                elif user_might_be_a_bot:
+                    logging.warning(
+                        'CAPTCHA validation failed for signup: {}'.format(email)
+                    )
 
-                return super().form_invalid(form)
+                    message_title = 'Validation Error'
+                    message_body = (
+                        'We could not validate your email address. Please contact our '
+                        '<a href="mailto:help@illinoisanswers.org" target="_blank">Data Coordinator</a>.'
+                    )
+
+                    messages.add_message(self.request, messages.INFO, message_title, extra_tags='font-weight-bold')
+                    messages.add_message(self.request, messages.INFO, message_body)
+
+                    return super().form_invalid(form)
 
         # If the email already exists in Mailchimp, re-verification is not required.
         # Authenticate the user.
