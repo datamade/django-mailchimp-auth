@@ -14,6 +14,7 @@ class MailchimpAPI(object):
     LIST_ID = settings.MAILCHIMP_LIST_ID
     API_KEY = settings.MAILCHIMP_API_KEY
     SERVER = settings.MAILCHIMP_SERVER
+    INTEREST_ID = settings.MAILCHIMP_INTEREST_ID
 
     def __init__(self):
         try:
@@ -51,13 +52,23 @@ class MailchimpAPI(object):
             "merge_fields": {
                 "FNAME": user.first_name,
                 "LNAME": user.last_name,
+            },
+            "interests": {
+                self.INTEREST_ID: True
             }
+        }
+
+        tag_payload = {
+            "tags": [
+                {"name": "Database Sign-up", "status": "active"}
+            ]
         }
 
         subscriber = payload["email_address"]
 
         try:
             response = self.client.lists.set_list_member(self.LIST_ID, subscriber, payload)
+            self.client.lists.update_list_member_tags(self.LIST_ID, subscriber, tag_payload)
         except ApiClientError as error:
             logging.warning("Error: {}".format(error.text))
             return 'error'  # Used to help display front end errors
