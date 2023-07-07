@@ -11,12 +11,14 @@ class MailchimpAPI(object):
     Wrapper for supporter methods:
     https://mailchimp.com/developer/marketing/api/list-members/
     '''
-    LIST_ID = settings.MAILCHIMP_LIST_ID
-    API_KEY = settings.MAILCHIMP_API_KEY
-    SERVER = settings.MAILCHIMP_SERVER
-    INTEREST_ID = settings.MAILCHIMP_INTEREST_ID
 
     def __init__(self):
+        self.LIST_ID = settings.MAILCHIMP_LIST_ID
+        self.API_KEY = settings.MAILCHIMP_API_KEY
+        self.SERVER = settings.MAILCHIMP_SERVER
+        self.INTEREST_ID = settings.MAILCHIMP_INTEREST_ID
+        self.TAG = settings.MAILCHIMP_TAG
+
         try:
             self.client = MailchimpMarketing.Client()
             self.client.set_config({
@@ -60,7 +62,7 @@ class MailchimpAPI(object):
 
         tag_payload = {
             "tags": [
-                {"name": "Database Sign-up", "status": "active"}
+                {"name": self.TAG, "status": "active"}
             ]
         }
 
