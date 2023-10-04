@@ -47,6 +47,7 @@ values.
     MAILCHIMP_API_KEY = '<secret key>'
     MAILCHIMP_SERVER = '<server code>'
     MAILCHIMP_LIST_ID = '<id of list to search within>'
+    MAILCHIMP_INTEREST_ID = '<comma separated string of interest ids (eg. xxx,yyyy,zzzzz)>'
 
     # Name and domain for cookie set for authorized users
     MAILCHIMP_AUTH_COOKIE_NAME = ''  # e.g., mailchimp-auth

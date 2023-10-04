@@ -12,6 +12,7 @@ class MailchimpAPI(object):
     https://mailchimp.com/developer/marketing/api/list-members/
     '''
     LIST_ID = settings.MAILCHIMP_LIST_ID
+    INTERESTS = settings.MAILCHIMP_INTEREST_ID
     API_KEY = settings.MAILCHIMP_API_KEY
     SERVER = settings.MAILCHIMP_SERVER
 
@@ -51,8 +52,12 @@ class MailchimpAPI(object):
             "merge_fields": {
                 "FNAME": user.first_name,
                 "LNAME": user.last_name,
-            }
+            },
+            "interests": {}
         }
+
+        for interest in self.INTERESTS.split(","):  # Add user to each interest group
+            payload["interests"][interest.strip()] = True
 
         subscriber = payload["email_address"]
 
