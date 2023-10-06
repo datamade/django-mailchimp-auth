@@ -13,6 +13,7 @@ class MailchimpAPI(object):
     '''
     LIST_ID = settings.MAILCHIMP_LIST_ID
     INTERESTS = settings.MAILCHIMP_INTEREST_ID
+    TAG = settings.MAILCHIMP_TAG
     API_KEY = settings.MAILCHIMP_API_KEY
     SERVER = settings.MAILCHIMP_SERVER
 
@@ -63,6 +64,8 @@ class MailchimpAPI(object):
 
         try:
             response = self.client.lists.set_list_member(self.LIST_ID, subscriber, payload)
+            if not self.TAG == "":
+                self.add_supporter_tag(user.email)
         except ApiClientError as error:
             logging.warning("Error: {}".format(error.text))
             return 'error'  # Used to help display front end errors
@@ -92,3 +95,22 @@ class MailchimpAPI(object):
         else:
             # No single, exact match found
             return None
+        
+    def add_supporter_tag(self, email_address):
+        '''
+        Add a tag to a supporter. This is a separate api call from the add/update call.
+        '''
+
+        payload = {
+            "tags": [
+                {"name": self.TAG, "status": "active"}
+            ]
+        }
+
+        try:
+            response = self.client.lists.update_list_member_tags(self.LIST_ID, email_address, payload)
+        except ApiClientError as error:
+            logging.warning("Error: {}".format(error.text))
+            return 'error'
+        
+        return response
