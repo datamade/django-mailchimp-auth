@@ -11,11 +11,14 @@ class MailchimpAPI(object):
     Wrapper for supporter methods:
     https://mailchimp.com/developer/marketing/api/list-members/
     '''
-    LIST_ID = settings.MAILCHIMP_LIST_ID
-    API_KEY = settings.MAILCHIMP_API_KEY
-    SERVER = settings.MAILCHIMP_SERVER
 
     def __init__(self):
+        self.LIST_ID = settings.MAILCHIMP_LIST_ID
+        self.API_KEY = settings.MAILCHIMP_API_KEY
+        self.SERVER = settings.MAILCHIMP_SERVER
+        self.INTERESTS = settings.MAILCHIMP_INTEREST_ID
+        self.TAG = settings.MAILCHIMP_TAG
+
         try:
             self.client = MailchimpMarketing.Client()
             self.client.set_config({
@@ -51,13 +54,19 @@ class MailchimpAPI(object):
             "merge_fields": {
                 "FNAME": user.first_name,
                 "LNAME": user.last_name,
-            }
+            },
+            "interests": {}
         }
+
+        for interest in self.INTERESTS.split(","):  # Add user to each interest group
+            payload["interests"][interest.strip()] = True
 
         subscriber = payload["email_address"]
 
         try:
             response = self.client.lists.set_list_member(self.LIST_ID, subscriber, payload)
+            if not self.TAG == "":
+                self.add_supporter_tag(user.email)
         except ApiClientError as error:
             logging.warning("Error: {}".format(error.text))
             return 'error'  # Used to help display front end errors
@@ -87,3 +96,22 @@ class MailchimpAPI(object):
         else:
             # No single, exact match found
             return None
+        
+    def add_supporter_tag(self, email_address):
+        '''
+        Add a tag to a supporter. This is a separate api call from the add/update call.
+        '''
+
+        payload = {
+            "tags": [
+                {"name": self.TAG, "status": "active"}
+            ]
+        }
+
+        try:
+            response = self.client.lists.update_list_member_tags(self.LIST_ID, email_address, payload)
+        except ApiClientError as error:
+            logging.warning("Error: {}".format(error.text))
+            return 'error'
+        
+        return response
