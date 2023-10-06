@@ -11,13 +11,14 @@ class MailchimpAPI(object):
     Wrapper for supporter methods:
     https://mailchimp.com/developer/marketing/api/list-members/
     '''
-    LIST_ID = settings.MAILCHIMP_LIST_ID
-    INTERESTS = settings.MAILCHIMP_INTEREST_ID
-    TAG = settings.MAILCHIMP_TAG
-    API_KEY = settings.MAILCHIMP_API_KEY
-    SERVER = settings.MAILCHIMP_SERVER
 
     def __init__(self):
+        self.LIST_ID = settings.MAILCHIMP_LIST_ID
+        self.API_KEY = settings.MAILCHIMP_API_KEY
+        self.SERVER = settings.MAILCHIMP_SERVER
+        self.INTERESTS = settings.MAILCHIMP_INTEREST_ID
+        self.TAG = settings.MAILCHIMP_TAG
+
         try:
             self.client = MailchimpMarketing.Client()
             self.client.set_config({
