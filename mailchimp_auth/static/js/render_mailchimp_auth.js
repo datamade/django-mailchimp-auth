@@ -33,11 +33,5 @@ $(document).on('click', '.toggle-login-signup', function(e){
 $('#login-form').submit(function(e) {
     e.preventDefault();
     var form_data = getFormData($('#login-form'));
-    submitForm('{% url "mailchimp_auth:login" %}', form_data);
-});
-
-$('#signup-form').submit(function(e){
-    e.preventDefault();
-    var form_data = getFormData($('#signup-form'));
-    submitForm('{% url "mailchimp_auth:signup" %}', form_data);
+    submitForm('/mailchimp/login/', form_data);
 });
