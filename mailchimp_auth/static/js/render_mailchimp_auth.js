@@ -35,3 +35,9 @@ $('#login-form').submit(function(e) {
     var form_data = getFormData($('#login-form'));
     submitForm('/mailchimp/login/', form_data);
 });
+
+$('#signup-form').submit(function(e){
+    e.preventDefault();
+    var form_data = getFormData($('#signup-form'));
+    submitForm('/salsa/signup/', form_data);
+});
