@@ -32,7 +32,7 @@
 </form>
 
 <script>
-    window.onload(function() {
+    window.addEventListener('load', function() {
         $('#signup-form').submit(function(e){
             e.preventDefault();
             var form_data = getFormData($('#signup-form'));
