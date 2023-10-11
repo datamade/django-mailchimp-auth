@@ -32,9 +32,11 @@
 </form>
 
 <script>
-    $('#signup-form').submit(function(e){
-        e.preventDefault();
-        var form_data = getFormData($('#signup-form'));
-        submitForm('{% url "mailchimp_auth:signup" %}', form_data);
+    window.onload(function() {
+        $('#signup-form').submit(function(e){
+            e.preventDefault();
+            var form_data = getFormData($('#signup-form'));
+            submitForm('{% url "mailchimp_auth:signup" %}', form_data);
+        });
     });
 </script>
