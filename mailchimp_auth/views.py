@@ -230,7 +230,7 @@ class LoginForm(JSONFormResponseMixin, FormView):
                 form.errors['email'] = [error_message.format(email=form.cleaned_data['email'])]
                 
                 if os.getenv("SENTRY_DSN") not in ["None", ""]:
-                    sentry_sdk.capture_message("User not found during login: {}".format(user), "warning")
+                    sentry_sdk.capture_message("User not found during login: {}".format(form.cleaned_data['email']), "warning")
 
                 return self.form_invalid(form)
             elif user == 'error':
@@ -239,6 +239,10 @@ class LoginForm(JSONFormResponseMixin, FormView):
                     'please contact our <a href="mailto:help@illinoisanswers.org" target="_blank">Data Coordinator</a>.'
                 )
                 form.errors['email'] = [error_message.format(email=form.cleaned_data['email'])]
+
+                if os.getenv("SENTRY_DSN") not in ["None", ""]:
+                    sentry_sdk.capture_message("User received error message during login: {}".format(form.cleaned_data['email']), "warning")
+
                 return self.form_invalid(form)
 
             try:
@@ -288,7 +292,7 @@ class VerifyEmail(RedirectView):
                                     error_message)
 
                 if os.getenv("SENTRY_DSN") not in ["None", ""]:
-                    sentry_sdk.capture_message("Error while adding user to Mailchimp audience: {}".format(user), "warning")
+                    sentry_sdk.capture_message("Error while adding user to Mailchimp audience. UID: {}".format(uid), "warning")
 
                 return redirect(settings.MAILCHIMP_AUTH_REDIRECT_LOCATION)
             else:
@@ -317,7 +321,7 @@ class VerifyEmail(RedirectView):
             
             if os.getenv("SENTRY_DSN") not in ["None", ""]:
                 if user is None:
-                    sentry_sdk.capture_message("Activation link clicked, but corresponding user object not found within local list of users.", "warning")
+                    sentry_sdk.capture_message("Activation link clicked, but corresponding user object not found within local list of users. UID: {}".format(uid), "warning")
                 else:
                     sentry_sdk.capture_message("User clicked invalid activation link: {}".format(user.email), "warning")
 
