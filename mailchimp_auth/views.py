@@ -16,6 +16,8 @@ from django.utils.encoding import force_bytes, force_text
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.views.generic import FormView, RedirectView
 import requests
+import os
+import sentry_sdk
 
 from mailchimp_auth.constants import TEST_PRIVATE_KEY
 from mailchimp_auth.forms import SignUpForm, LoginForm
@@ -101,6 +103,9 @@ class SignUpForm(JSONFormResponseMixin, FormView):
 
             messages.add_message(self.request, messages.INFO, message_title, extra_tags='font-weight-bold')
             messages.add_message(self.request, messages.INFO, message_body)
+            if os.getenv("SENTRY_DSN") not in ["None", ""]:
+                    sentry_sdk.capture_message("Error while looking for user in Mailchimp during sign-up: {}".format(email), "warning")
+
         elif mailchimp_user:
             # Sometimes the user's first name is not in Mailchimp.
             welcome_message = 'Welcome back, {}!'.format(mailchimp_user['merge_fields'].get('FNAME', email))  
@@ -223,6 +228,10 @@ class LoginForm(JSONFormResponseMixin, FormView):
                     'to access this tool.'
                 )
                 form.errors['email'] = [error_message.format(email=form.cleaned_data['email'])]
+                
+                if os.getenv("SENTRY_DSN") not in ["None", ""]:
+                    sentry_sdk.capture_message("User not found during login: {}".format(user), "warning")
+
                 return self.form_invalid(form)
             elif user == 'error':
                 error_message = (
@@ -277,6 +286,10 @@ class VerifyEmail(RedirectView):
                 messages.add_message(self.request,
                                     messages.ERROR,
                                     error_message)
+
+                if os.getenv("SENTRY_DSN") not in ["None", ""]:
+                    sentry_sdk.capture_message("Error while adding user to Mailchimp audience: {}".format(user), "warning")
+
                 return redirect(settings.MAILCHIMP_AUTH_REDIRECT_LOCATION)
             else:
                 email = mailchimp_user['email_address']
@@ -301,6 +314,12 @@ class VerifyEmail(RedirectView):
             messages.add_message(self.request,
                                  messages.ERROR,
                                  contact_message)
+            
+            if os.getenv("SENTRY_DSN") not in ["None", ""]:
+                if user is None:
+                    sentry_sdk.capture_message("Activation link clicked, but corresponding user object not found within local list of users.", "warning")
+                else:
+                    sentry_sdk.capture_message("User clicked invalid activation link: {}".format(user.email), "warning")
 
             return redirect(settings.MAILCHIMP_AUTH_REDIRECT_LOCATION)
 
