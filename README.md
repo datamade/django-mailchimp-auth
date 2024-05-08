@@ -88,4 +88,4 @@ authentication modals, and required JavaScript in templates that require login.
 
 ### Sending Sentry messages to an admin email
 
-If you'd like to send authentication error messages to an admin, simply add a var named `ADMIN_EMAIL` containing that email string to your environment variables.
+This app can send authentication error messages to an admin similar to those sent to sentry. If you have a `SENTRY_DSN` in your environment variables, simply add a var named `ADMIN_EMAIL` containing an email address string as well.

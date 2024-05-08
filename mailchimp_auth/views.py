@@ -232,7 +232,6 @@ class LoginForm(JSONFormResponseMixin, FormView):
                 form.errors['email'] = [error_message.format(email=form.cleaned_data['email'])]
                 
                 if os.getenv("SENTRY_DSN"):
-                    # TODO: decide if we need to log this general login error. maybe not
                     err_msg = "Following user not found during login: {}. They most likely entered an unsubscribed email.".format(form.cleaned_data['email'])
                     sentry_sdk.capture_message(err_msg, "warning")
                     send_error_email(err_msg, "login", self.request)
