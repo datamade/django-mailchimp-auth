@@ -103,8 +103,10 @@ class SignUpForm(JSONFormResponseMixin, FormView):
 
             messages.add_message(self.request, messages.INFO, message_title, extra_tags='font-weight-bold')
             messages.add_message(self.request, messages.INFO, message_body)
-            if os.getenv("SENTRY_DSN") not in ["None", ""]:
-                    sentry_sdk.capture_message("Error while looking for user in Mailchimp during sign-up: {}".format(email), "warning")
+            if os.getenv("SENTRY_DSN"):
+                err_msg = "Error while looking for following user in Mailchimp during sign-up: {}".format(email)
+                sentry_sdk.capture_message(err_msg, "warning")
+                send_error_email(err_msg, "sign-up", self.request)
 
         elif mailchimp_user:
             # Sometimes the user's first name is not in Mailchimp.
@@ -229,8 +231,11 @@ class LoginForm(JSONFormResponseMixin, FormView):
                 )
                 form.errors['email'] = [error_message.format(email=form.cleaned_data['email'])]
                 
-                if os.getenv("SENTRY_DSN") not in ["None", ""]:
-                    sentry_sdk.capture_message("User not found during login: {}".format(form.cleaned_data['email']), "warning")
+                if os.getenv("SENTRY_DSN"):
+                    # TODO: decide if we need to log this general login error. maybe not
+                    err_msg = "Following user not found during login: {}. They most likely entered an unsubscribed email.".format(form.cleaned_data['email'])
+                    sentry_sdk.capture_message(err_msg, "warning")
+                    send_error_email(err_msg, "login", self.request)
 
                 return self.form_invalid(form)
             elif user == 'error':
@@ -240,8 +245,10 @@ class LoginForm(JSONFormResponseMixin, FormView):
                 )
                 form.errors['email'] = [error_message.format(email=form.cleaned_data['email'])]
 
-                if os.getenv("SENTRY_DSN") not in ["None", ""]:
-                    sentry_sdk.capture_message("User received error message during login: {}".format(form.cleaned_data['email']), "warning")
+                if os.getenv("SENTRY_DSN"):
+                    err_msg = "Following user received the general error message during login: {}".format(form.cleaned_data['email'])
+                    sentry_sdk.capture_message(err_msg, "warning")
+                    send_error_email(err_msg, "login", self.request)
 
                 return self.form_invalid(form)
 
@@ -291,8 +298,10 @@ class VerifyEmail(RedirectView):
                                     messages.ERROR,
                                     error_message)
 
-                if os.getenv("SENTRY_DSN") not in ["None", ""]:
-                    sentry_sdk.capture_message("Error while adding user to Mailchimp audience. UID: {}".format(uid), "warning")
+                if os.getenv("SENTRY_DSN"):
+                    err_msg = "Error while adding a user to Mailchimp audience. UID: {}".format(uid)
+                    sentry_sdk.capture_message(err_msg, "warning")
+                    send_error_email(err_msg, "email verification", self.request)
 
                 return redirect(settings.MAILCHIMP_AUTH_REDIRECT_LOCATION)
             else:
@@ -319,11 +328,15 @@ class VerifyEmail(RedirectView):
                                  messages.ERROR,
                                  contact_message)
             
-            if os.getenv("SENTRY_DSN") not in ["None", ""]:
+            if os.getenv("SENTRY_DSN"):
                 if user is None:
-                    sentry_sdk.capture_message("Activation link clicked, but corresponding user object not found within local list of users. UID: {}".format(uid), "warning")
+                    err_msg = "Activation link clicked, but corresponding user object not found within the app's list of users. UID: {}".format(uid)
+                    sentry_sdk.capture_message(err_msg, "warning")
+                    send_error_email(err_msg, "email verification", self.request)
                 else:
-                    sentry_sdk.capture_message("User clicked invalid activation link: {}".format(user.email), "warning")
+                    err_msg = "Following user clicked an invalid activation link: {}".format(user.email)
+                    sentry_sdk.capture_message(err_msg, "warning")
+                    send_error_email(err_msg, "email verification", self.request)
 
             return redirect(settings.MAILCHIMP_AUTH_REDIRECT_LOCATION)
 
@@ -346,3 +359,23 @@ class Authenticate(RedirectView):
                              "We've logged you in so you can continue using the database.")
 
         return response
+
+
+def send_error_email(error_msg, event_type, request):
+    '''
+    Sends a log of the error to the site admin if one is set up
+    '''
+    if os.getenv("ADMIN_EMAIL"):
+        email_subject = 'Authentication error during ' + event_type
+        current_site = get_current_site(request)
+
+        message = render_to_string('emails/authentication_error.html', {
+            'error_msg': error_msg,
+            'event_type': event_type,
+            'domain': current_site.domain
+        })
+
+        send_mail(email_subject,
+            message,
+            getattr(settings, 'DEFAULT_FROM_EMAIL', 'testing@datamade.us'),
+            [os.getenv("ADMIN_EMAIL")])
