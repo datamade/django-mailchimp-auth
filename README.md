@@ -1,4 +1,4 @@
-# 💃 django-mailchimp-auth
+# 🐒 django-mailchimp-auth
 
 A reusable application to allow users of your Django application to
 "authenticate" against your [Mailchimp](https://mailchimp.com/) user store.
@@ -82,3 +82,8 @@ authentication modals, and required JavaScript in templates that require login.
     ```html
     $('#loginModal').modal()
     ```
+
+
+### Sending Sentry messages to an admin email
+
+If you'd like to send authentication error messages to an admin, simply add a var named `ADMIN_EMAIL` containing that email string to your environment variables.
