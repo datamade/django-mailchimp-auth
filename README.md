@@ -84,3 +84,8 @@ authentication modals, and required JavaScript in templates that require login.
     ```html
     $('#loginModal').modal()
     ```
+
+
+### Sending Sentry messages to an admin email
+
+This app can send authentication error messages to an admin similar to those sent to sentry. If you have a `SENTRY_DSN` in your environment variables, simply add a var named `ADMIN_EMAIL` containing an email address string as well.
