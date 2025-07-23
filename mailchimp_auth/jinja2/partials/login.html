@@ -3,7 +3,12 @@
 
 <p>If you encounter problems logging in, be sure to check your email’s spam folder for activation messages from <strong>no-reply@bettergov.org</strong>. If you still can’t access the database, please contact our <a href="https://www.bettergov.org/team/jared-rutecki" target="_blank">Data Coordinator</a>.</p>
 
-<p><small>Note: If you previously created a login to the Public Salaries Database, or if you subscribed to the BGA mailing list on another BGA Data & Tools site, you can use that email address to sign in.</small></p>
+<p>
+    <small>Note: If you previously created a login to the Public Pensions Database, or if you subscribed to the BGA mailing list on another BGA Data & Tools site, you can use that email address to sign in.</small>
+</p>
+<p>    
+    <small>Subscription to our newsletter is required to view the databse after 3 searches. If you have unsubscribed from our newsletter, you can <a target="_blank" href="https://illinoisanswers.org/newsletters/">sign up again here</a> to regain access to our databases.</small>
+</p>
 
 <form class="form" id="login-form" method="POST" action="{{ url('mailchimp_auth:login') }}">
     <input type="hidden" value="{{ csrf_token }}" name="csrfmiddlewaretoken" />
